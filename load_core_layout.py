@@ -10,7 +10,7 @@ class CoreLayoutWindow(QMainWindow):
     def __init__(self, parent, reactor_type, reactor_name, mode="edit"):
         super().__init__(parent)  # Call the superclass's __init__
         self.setWindowTitle(f"Core Layout - {reactor_type} {reactor_name} ({mode.capitalize()})")
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 600, 400)
         self.setWindowState(Qt.WindowMaximized)  # Maximize window
         self.setFixedSize(1200, 500)  # Set a fixed size
 
@@ -49,23 +49,47 @@ class CoreLayoutWindow(QMainWindow):
         self.layout_frame.setLayout(grid_layout)
 
         # Checkbox positions and skip locations
-        self.checkbox_positions = {chr(row): list(range(1, 21)) for row in range(65, 85) if chr(row) != 'I'}
-        self.skip_locations = {
-            'A': list(range(1, 8)) + list(range(14, 21)),
-            'B': list(range(1, 6)) + list(range(16, 21)),
-            'C': list(range(1, 4)) + list(range(18, 21)),
-            'D': list(range(1, 3)) + list(range(19, 21)),
-            'E': list(range(1, 3)) + list(range(19, 21)),
-            'F': [1, 20],
-            'G': [1, 20],
-            'N': [1, 20],
-            'O': [1, 20],
-            'P': [1, 20],
-            'Q': list(range(1, 3)) + list(range(19, 21)),
-            'R': list(range(1, 3)) + list(range(19, 21)),
-            'S': list(range(1, 5)) + list(range(17, 21)),
-            'T': list(range(1, 6)) + list(range(16, 21)),
-        }
+        if reactor_type!="540 IPHWR":
+            self.checkbox_positions = {chr(row): list(range(1, 21)) for row in range(65, 85) if chr(row) != 'I'}
+            self.skip_locations = {
+                'A': list(range(1, 8)) + list(range(14, 21)),
+                'B': list(range(1, 6)) + list(range(16, 21)),
+                'C': list(range(1, 4)) + list(range(18, 21)),
+                'D': list(range(1, 3)) + list(range(19, 21)),
+                'E': list(range(1, 3)) + list(range(19, 21)),
+                'F': [1, 20],
+                'G': [1, 20],
+                'N': [1, 20],
+                'O': [1, 20],
+                'P': [1, 20],
+                'Q': list(range(1, 3)) + list(range(19, 21)),
+                'R': list(range(1, 3)) + list(range(19, 21)),
+                'S': list(range(1, 5)) + list(range(17, 21)),
+                'T': list(range(1, 6)) + list(range(16, 21)),
+            }
+            
+        else:
+            # Checkbox positions and skip locations for the 396 checkbox layout
+            self.checkbox_positions = {chr(row): list(range(1, 21)) for row in range(65, 85) if chr(row) != 'I'}
+            self.checkbox_positions['T'] = list(range(1, 15))  # T (14 checkboxes)
+
+            self.skip_locations = {
+                'A': list(range(1, 8)) + list(range(16, 23)),
+                'B': list(range(1, 6)) + list(range(18, 23)),
+                'C': list(range(1, 4)) + list(range(19, 23)),
+                'D': list(range(1, 3)) + list(range(20, 23)),
+                'E': [1, 22],
+                'F': [1, 22],
+                'G': [1, 22],
+                'N': [1, 22],
+                'O': [1, 22],
+                'P': [1, 22],
+                'Q': [1, 22],
+                'R': list(range(1, 3)) + list(range(20, 23)),
+                'S': list(range(1, 5)) + list(range(18, 23)),
+                'T': list(range(1, 6)) + list(range(17, 23)),  # Adjusting for 14 total
+            }
+
 
         # Add labels for the horizontal axis
         for col in range(1, 21):

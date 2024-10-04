@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QLabel, QPushButton, QGridLayout
 from PyQt5.QtCore import Qt
-
+from load_core_layout import CoreLayoutWindow  # Ensure correct import
 def load_540_iphwr(sub_layout_2,reactor_type):
     # Clear the existing layout content
     while sub_layout_2.count():
@@ -34,3 +34,5 @@ def load_540_iphwr(sub_layout_2,reactor_type):
 # Function to handle button click
 def button_clicked(button_name,reactor_type):
     print(f"{reactor_type} {button_name} is clicked")
+    core_layout_window = CoreLayoutWindow(None, reactor_type, button_name, mode="edit")  # Pass `self` as the parent
+    core_layout_window.show()
