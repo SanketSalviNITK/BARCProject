@@ -204,12 +204,3 @@ class CoreLayoutWindow(QMainWindow):
 
     def back_to_main(self):
         self.close()  # Close this window
-
-
-if __name__ == "__main__":
-    import sys
-
-    app = QApplication(sys.argv)
-    window = CoreLayoutWindow(None, "Reactor XYZ")
-    window.show()
-    sys.exit(app.exec_())
