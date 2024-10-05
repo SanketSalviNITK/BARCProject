@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
+from edit_property_window import EditPropertyWindow
+
 
 class CoreLayoutWindow(QMainWindow):
     def __init__(self, parent, reactor_type, reactor_name, mode="edit"):
@@ -13,7 +15,8 @@ class CoreLayoutWindow(QMainWindow):
         self.setGeometry(100, 100, 600, 400)
         self.setWindowState(Qt.WindowMaximized)  # Maximize window
         self.setFixedSize(1200, 500)  # Set a fixed size
-
+        self.reactor_type=reactor_type
+        self.reactor_name=reactor_name
         # Initialize variables
         self.selected_channels = []
         self.selected_button = None
@@ -179,7 +182,10 @@ class CoreLayoutWindow(QMainWindow):
 
     def edit_database(self):
         selected_channels_str = ', '.join(self.selected_channels)
-        QMessageBox.information(self, "Edit Database", f"Editing database for channels: {selected_channels_str}")
+        selected_reactor_type=self.reactor_type
+        selected_reactor_name=self.reactor_name
+        QMessageBox.information(self, "Edit Database", f"Editing database for channels: {selected_channels_str} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
+        EditPropertyWindow(selected_channels_str,selected_reactor_type,selected_reactor_name)
 
     def view_database(self):
         selected_channels_str = ', '.join(self.selected_channels)

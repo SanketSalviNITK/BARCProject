@@ -30,9 +30,10 @@ class EditPropertyWindow(QtWidgets.QWidget):
         self.channel_layout = QtWidgets.QVBoxLayout(self.channel_frame)
 
         self.channel_layout.addWidget(QtWidgets.QLabel("Selected Channels", font=QtGui.QFont("Helvetica", 12)),
-                                       alignment=QtCore.Qt.AlignCenter)
+                                      alignment=QtCore.Qt.AlignCenter)
 
         self.selected_channel_listbox = QtWidgets.QListWidget()
+        self.selected_channel_listbox.currentRowChanged.connect(self.populate_table_with_selected_channel)
         self.channel_layout.addWidget(self.selected_channel_listbox)
 
         for channel in selected_channels:
@@ -56,22 +57,26 @@ class EditPropertyWindow(QtWidgets.QWidget):
 
         # Horizontal layout for Add New, Manual, and Import buttons
         self.button_layout = QtWidgets.QHBoxLayout()
+
+        # Add New button
         self.add_new_button = QtWidgets.QPushButton("Add New")
         self.add_new_button.setCheckable(True)  # Make it a toggle button
+        self.add_new_button.setFixedSize(100, 30)  # Set the size (width=100, height=30)
         self.add_new_button.clicked.connect(self.toggle_add_options)
         self.button_layout.addWidget(self.add_new_button)
 
-        # Manual and Import buttons (initially hidden)
+        # Manual button (initially hidden)
         self.manual_button = QtWidgets.QPushButton("Manual")
+        self.manual_button.setFixedSize(100, 30)  # Set the size (width=100, height=30)
         self.manual_button.clicked.connect(self.open_manual_entry)
-        self.import_button = QtWidgets.QPushButton("Import")
-        self.import_button.clicked.connect(self.import_data)
-
-        # Hide the manual and import buttons initially
-        self.manual_button.hide()
-        self.import_button.hide()
-
+        self.manual_button.hide()  # Hide initially
         self.button_layout.addWidget(self.manual_button)
+
+        # Import button (initially hidden)
+        self.import_button = QtWidgets.QPushButton("Import")
+        self.import_button.setFixedSize(100, 30)  # Set the size (width=100, height=30)
+        self.import_button.clicked.connect(self.import_data)
+        self.import_button.hide()  # Hide initially
         self.button_layout.addWidget(self.import_button)
 
         # Add button layout to the property layout
@@ -109,13 +114,6 @@ class EditPropertyWindow(QtWidgets.QWidget):
 
         self.main_layout.addWidget(self.footer_frame)
 
-        # Populate the table initially
-        self.populate_table()
-
-        # Automatically select the first channel's properties in the table
-        if self.selected_channels:
-            self.populate_table_with_selected_channel()
-
     def go_back(self):
         """Close the current window and go back to the previous window."""
         self.close()
@@ -141,53 +139,55 @@ class EditPropertyWindow(QtWidgets.QWidget):
         # Logic for import will be implemented here
         pass
 
-    def save_new_properties(self):
-        """Save new properties to the database."""
-        # Logic for saving properties will be implemented here
-        pass
+    def populate_table(self, channel):
+        """Fetch data from the database and populate the TableView for the selected channel."""
+        # Check if a channel is selected
+        if not channel or not self.database_type:
+            return
 
-    def populate_table(self):
-        """Fetch data from the database and populate the TableView."""
         conn = sqlite3.connect('iphwr_analysis.db')
         cursor = conn.cursor()
+
+        # Define the columns for the table
+        headers = [
+            'Channel ID', 'Property Name', 'Year', 'HOY', 'Length', 'Entry By', 'Entry Date', 'Remark',
+            'Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5', 'Cell6', 'Cell7', 'Cell8', 'Cell9', 'Cell10',
+            'Cell11', 'Cell12', 'Cell13', 'Cell14', 'Cell15', 'Cell16', 'Cell17', 'Cell18', 'Cell19',
+            'Cell20', 'Cell21', 'Cell22', 'Cell23', 'Cell24'
+        ]
+
+        # Set column count and headers
+        self.tree.setColumnCount(len(headers))
+        self.tree.setHorizontalHeaderLabels(headers)
 
         # Clear the current table
         self.tree.setRowCount(0)  # Clear existing data in the table
 
-        # Fetch the data for the selected channels and database type
-        for channel in self.selected_channels:
-            cursor.execute('''SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark,
-                                     Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,
-                                     Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19,
-                                     Cell20, Cell21, Cell22, Cell23, Cell24
-                              FROM properties
-                              WHERE channel_id = ? AND database_type = ?''',
-                           (channel, self.database_type))
-            rows = cursor.fetchall()
+        # Fetch the data for the selected channel and database type
+        cursor.execute("SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties where channel_id='"+channel+"'")
+    
+        rows = cursor.fetchall()
 
-            # Populate the table with fetched data
-            for row in rows:
-                row_position = self.tree.rowCount()
-                self.tree.insertRow(row_position)
-                for column_index, item in enumerate(row):
-                    self.tree.setItem(row_position, column_index, QtWidgets.QTableWidgetItem(str(item)))
+        # Populate the table with fetched data
+        for row in rows:
+            row_position = self.tree.rowCount()
+            self.tree.insertRow(row_position)
+            for column_index, item in enumerate(row):
+                self.tree.setItem(row_position, column_index, QtWidgets.QTableWidgetItem(str(item)))
 
         conn.close()
 
-    def populate_table_with_selected_channel(self):
-        """Populate the table with properties of the first selected channel."""
-        if not self.selected_channels:
+    def populate_table_with_selected_channel(self, row):
+        """Populate the table with properties of the selected channel."""
+        if row < 0:  # If no valid channel is selected
             return
 
-        first_channel = self.selected_channels[0]
-        self.selected_channel_listbox.setCurrentRow(0)
-
-        # Fetch properties for the first selected channel
-        self.populate_table()
+        selected_channel = self.selected_channels[row]
+        self.populate_table(selected_channel)
 
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    window = EditPropertyWindow(["Channel1", "Channel2"], "Type A")
+    window = EditPropertyWindow(["Example_Channel", "2"], "Type A")
     window.show()
     sys.exit(app.exec_())

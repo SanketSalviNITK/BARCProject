@@ -40,8 +40,8 @@ class ManualEntryWindow(QDialog):
             "Entry_by": "Tester",
             "Entry_Date": "2023-10-04",
             "Remark": "Test entry",
-            "Reactor_Type": "Type A",
-            "Reactor_Name": "Reactor 1",
+            "Reactor_Type": "220_IPHWR",
+            "Reactor_Name": "RAPS-1",
         }
 
         for field, default_value in fields.items():
