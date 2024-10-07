@@ -207,12 +207,12 @@ class CoreLayoutWindow(QMainWindow):
 
 
     def edit_database(self):
-        selected_channels_str = ', '.join(self.selected_channels)
-        selected_channels_str=selected_channels_str.split()
+        selected_channels_str = ','.join(self.selected_channels)
+        selected_channels_str=selected_channels_str
         selected_reactor_type=self.reactor_type
         selected_reactor_name=self.reactor_name
-        QMessageBox.information(self, "Edit Database", f"User {self.username} Editing database for channels: {selected_channels_str} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
-        self.editPropertyWindow=EditPropertyWindow(self.username, selected_reactor_type, selected_reactor_name, selected_channels_str, self.db_name)
+        QMessageBox.information(self, "Edit Database", f"User {self.username} Editing database for channels: {selected_channels_str.split(",")} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
+        self.editPropertyWindow=EditPropertyWindow(self.username, selected_reactor_type, selected_reactor_name, selected_channels_str.split(","), self.db_name)
         self.editPropertyWindow.show()
 
     def view_database(self):

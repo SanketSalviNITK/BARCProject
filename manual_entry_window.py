@@ -3,6 +3,8 @@ import sqlite3
 from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, 
                              QLineEdit, QPushButton, QScrollArea, QWidget, 
                              QMessageBox)
+import datetime  # Import the datetime module
+
 
 class ManualEntryWindow(QDialog):
     def __init__(self, parent, username, reactor_type, reactor_name, selected_channel, database_type, selected_property):
@@ -31,7 +33,8 @@ class ManualEntryWindow(QDialog):
 
         # Check and add missing columns in the database
         self.update_database_schema()
-
+        # Get the current date in the format YYYY-MM-DD
+        current_date = datetime.datetime.now().strftime("%d-%m-%Y")
         # Create entry fields with prefilled values
         self.entries = {}
         fields = {
@@ -39,7 +42,7 @@ class ManualEntryWindow(QDialog):
             "HOY": "100",
             "Length": "10.5",
             "Entry_by": self.username,
-            "Entry_Date": "2023-10-04",
+            "Entry_Date": current_date,
             "Remark": "Test entry",
             "Reactor_Type": reactor_type,
             "Reactor_Name": reactor_name,
