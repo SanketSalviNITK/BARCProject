@@ -15,7 +15,7 @@ def display_table(database_type, channel):
     ]
 
     # Fetch the data for the specified channel and database type
-    cursor.execute("SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties where channel_id='"+channel+"'")
+    cursor.execute("SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties")
     
     rows = cursor.fetchall()
 
@@ -46,6 +46,6 @@ def display_table(database_type, channel):
 if __name__ == "__main__":
     # Example usage
     database_type = "Type A"  # Set your database type
-    channel = "Example_Channel"             # Set your channel
+    channel = "A08"             # Set your channel
 
     display_table(database_type, channel)

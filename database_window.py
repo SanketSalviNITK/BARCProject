@@ -111,7 +111,7 @@ class IPHWRDatabase(QWidget):
             self.reactor_type = sender.text()
             if not self.is_220_loaded:  # Check if already loaded
                 self.clear_layout()  # Call the method correctly
-                load_220_iphwr(self.sub_layout_2, self.reactor_type)
+                load_220_iphwr(self, self.sub_layout_2, self.reactor_type,self.username)
                 self.is_540_loaded = False
                 self.is_700_loaded = False
                 self.is_220_loaded = True  # Mark as loaded
@@ -119,7 +119,7 @@ class IPHWRDatabase(QWidget):
             self.reactor_type = sender.text()
             if not self.is_540_loaded:  # Check if already loaded
                 self.clear_layout()  # Call the method correctly
-                load_540_iphwr(self.sub_layout_2, self.reactor_type)
+                load_540_iphwr(self, self.sub_layout_2, self.reactor_type,self.username)
                 self.is_220_loaded = False
                 self.is_700_loaded = False
                 self.is_540_loaded = True  # Mark as loaded
@@ -127,7 +127,7 @@ class IPHWRDatabase(QWidget):
             self.reactor_type = sender.text()
             if not self.is_700_loaded:  # Check if already loaded
                 self.clear_layout()  # Call the method correctly
-                load_700_iphwr(self.sub_layout_2, self.reactor_type)
+                load_700_iphwr(self, self.sub_layout_2, self.reactor_type,self.username)
                 self.is_220_loaded = False
                 self.is_540_loaded = False
                 self.is_700_loaded = True  # Mark as loaded

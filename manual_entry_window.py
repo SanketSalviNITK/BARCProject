@@ -5,14 +5,15 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel,
                              QMessageBox)
 
 class ManualEntryWindow(QDialog):
-    def __init__(self, parent, selected_channels, database_type, selected_property):
+    def __init__(self, parent, username, reactor_type, reactor_name, selected_channel, database_type, selected_property):
         super().__init__(parent)
-        self.setWindowTitle("Manual Entry")
-        self.setGeometry(100, 100, 400, 600)
-
-        self.selected_channels = selected_channels
+        self.username = username  # Store username if needed
+        self.selected_channel = selected_channel
         self.database_type = database_type
         self.selected_property = selected_property
+        self.setWindowTitle("Manual Entry for Channel "+self.selected_channel+" for "+self.selected_property)
+        self.setGeometry(100, 100, 400, 600)
+        print(self.username, reactor_type, reactor_name, self.selected_channel,self.database_type,self.selected_property)
 
         # Create layout
         layout = QVBoxLayout()
@@ -37,11 +38,11 @@ class ManualEntryWindow(QDialog):
             "Year": "2023",
             "HOY": "100",
             "Length": "10.5",
-            "Entry_by": "Tester",
+            "Entry_by": self.username,
             "Entry_Date": "2023-10-04",
             "Remark": "Test entry",
-            "Reactor_Type": "220_IPHWR",
-            "Reactor_Name": "RAPS-1",
+            "Reactor_Type": reactor_type,
+            "Reactor_Name": reactor_name,
         }
 
         for field, default_value in fields.items():
@@ -92,8 +93,8 @@ class ManualEntryWindow(QDialog):
         cursor = conn.cursor()
 
         # Insert manual entries for each selected channel (using placeholder channel for demonstration)
-        channel = "Example_Channel"  # Placeholder channel
-        property_name = "Example_Property"  # Placeholder property name
+        channel = self.selected_channel  # Placeholder channel
+        property_name = self.selected_property  # Placeholder property name
 
         # Insert into the properties table with all required columns
         cursor.execute('''INSERT INTO properties (channel_id, property_name, database_type, Year, HOY, Length, Entry_by, Entry_Date, Remark,
@@ -113,11 +114,3 @@ class ManualEntryWindow(QDialog):
         conn.close()
         QMessageBox.information(self, "Info", "Manual entries added successfully!")
         self.accept()
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    selected_channels = ["Channel1", "Channel2"]  # Example channels for testing
-    database_type = "Type A"
-    selected_property = "Property 1"
-    window = ManualEntryWindow(None, selected_channels, database_type, selected_property)
-    window.exec_()

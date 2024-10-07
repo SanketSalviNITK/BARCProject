@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QGridLayout
 from PyQt5.QtCore import Qt
 from load_core_layout import CoreLayoutWindow  # Ensure correct import
 
-def load_220_iphwr(sub_layout_2,reactor_type):
+def load_220_iphwr(self,sub_layout_2,reactor_type, username):
     # Clear the existing layout content
     while sub_layout_2.count():
         item = sub_layout_2.takeAt(0)
@@ -30,7 +30,7 @@ def load_220_iphwr(sub_layout_2,reactor_type):
     # Add buttons to the grid layout
     for index, button_name in enumerate(reactor_buttons):
         button = QPushButton(button_name)
-        button.clicked.connect(lambda checked, name=button_name: button_clicked(name, reactor_type))  
+        button.clicked.connect(lambda checked, reactor_name=button_name: button_clicked(username, reactor_name, reactor_type))  
         grid_layout.addWidget(button, index // 4, index % 4)  # 4x4 layout
 
     # Update the layout
@@ -38,7 +38,7 @@ def load_220_iphwr(sub_layout_2,reactor_type):
     
     
     # Function to handle button click
-def button_clicked(button_name,reactor_type):
-    print(f"{reactor_type} {button_name} is clicked")
-    core_layout_window = CoreLayoutWindow(None, reactor_type, button_name, mode="edit")  # Pass `self` as the parent
+def button_clicked(username, reactor_name,reactor_type):
+    print(f"User {username} has {reactor_type} {reactor_name} is clicked")
+    core_layout_window = CoreLayoutWindow(None, username, reactor_type, reactor_name, mode="edit")  # Pass `self` as the parent
     core_layout_window.show()

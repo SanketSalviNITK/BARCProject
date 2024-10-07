@@ -1,17 +1,21 @@
 import sys
 import sqlite3
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtWidgets import QMessageBox
+
+from manual_entry_window import ManualEntryWindow
 
 
 class EditPropertyWindow(QtWidgets.QWidget):
-    def __init__(self, selected_channels, database_type):
+    def __init__(self, username, reactor_type, reactor_name, selected_channels, database_type):
         super().__init__()
         self.setWindowTitle("Edit Properties")
         self.setGeometry(100, 100, 1200, 600)
-
+        self.username=username
         self.selected_channels = selected_channels
         self.database_type = database_type
-
+        self.selected_channel=""
+        self.selected_property=""
         # List of properties
         self.properties = [
             "UTS axial", "UTS transverse", "YS axial", "YS transverse",
@@ -53,6 +57,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
         # Combo box to select properties
         self.property_combo = QtWidgets.QComboBox()
         self.property_combo.addItems(self.properties)
+        self.property_combo.currentIndexChanged.connect(self.property_selected)  # Connect the signal to a method
         self.property_layout.addWidget(self.property_combo)
 
         # Horizontal layout for Add New, Manual, and Import buttons
@@ -68,7 +73,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
         # Manual button (initially hidden)
         self.manual_button = QtWidgets.QPushButton("Manual")
         self.manual_button.setFixedSize(100, 30)  # Set the size (width=100, height=30)
-        self.manual_button.clicked.connect(self.open_manual_entry)
+        self.manual_button.clicked.connect(lambda: self.open_manual_entry(self.username, reactor_type,reactor_name,self.selected_channel, database_type, self.selected_property))
         self.manual_button.hide()  # Hide initially
         self.button_layout.addWidget(self.manual_button)
 
@@ -90,7 +95,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
         self.tree = QtWidgets.QTableWidget()
         self.tree.setColumnCount(24)  # Set the number of columns
         self.tree.setHorizontalHeaderLabels([
-            "Channel", "Property", "Value", "Year", "HOY", "Length", "Entryby", "Entry_Date", "Remark",
+            "Channel", "Property", "Value", "Year", "HOY", "Length", "Entry_by", "Entry_Date", "Remark",
             "Cell1", "Cell2", "Cell3", "Cell4", "Cell5", "Cell6", "Cell7", "Cell8", "Cell9", "Cell10",
             "Cell11", "Cell12", "Cell13", "Cell14", "Cell15", "Cell16", "Cell17", "Cell18", "Cell19",
             "Cell20", "Cell21", "Cell22", "Cell23", "Cell24"
@@ -129,8 +134,14 @@ class EditPropertyWindow(QtWidgets.QWidget):
             self.import_button.hide()
             self.add_new_button.setText("Add New")  # Change button text back to Add New
 
-    def open_manual_entry(self):
+    def open_manual_entry(self, username, reactor_type, reactor_name, selected_channel, database_type, selected_property):
         """Handle manual entry of properties."""
+        if len(selected_channel)==0:
+            QMessageBox.information("Please select the channel to be edited")
+        else:
+            print("Selected channel is "+selected_channel)
+            self.manualEntryWindow=ManualEntryWindow(self, username, reactor_type, reactor_name, selected_channel, database_type, selected_property)
+            self.manualEntryWindow.show()
         # Logic for manual entry will be implemented here
         pass
 
@@ -181,13 +192,18 @@ class EditPropertyWindow(QtWidgets.QWidget):
         """Populate the table with properties of the selected channel."""
         if row < 0:  # If no valid channel is selected
             return
-
         selected_channel = self.selected_channels[row]
-        self.populate_table(selected_channel)
+        self.selected_channel=selected_channel
+        if self.selected_channel=="":
+            QMessageBox.information("Please select a channel to edit")
+        else:
+            self.populate_table(selected_channel)
+    def property_selected(self):
+        self.selected_property = self.property_combo.currentText()  # Get the currently selected property
+        print(f"Selected Property: {self.selected_property}")  # Print the selected property
 
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = EditPropertyWindow(["Example_Channel", "2"], "Type A")
-    window.show()
-    sys.exit(app.exec_())
+#if __name__ == "__main__":
+#    app = QtWidgets.QApplication(sys.argv)
+#    window = EditPropertyWindow(["Example_Channel", "2"], "Type A")
+#    window.show()
+#    sys.exit(app.exec_())

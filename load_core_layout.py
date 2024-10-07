@@ -9,7 +9,7 @@ from edit_property_window import EditPropertyWindow
 
 
 class CoreLayoutWindow(QMainWindow):
-    def __init__(self, parent, reactor_type, reactor_name, mode="edit"):
+    def __init__(self, parent, username, reactor_type, reactor_name, mode="edit"):
         super().__init__(parent)  # Call the superclass's __init__
         self.setWindowTitle(f"Core Layout - {reactor_type} {reactor_name} ({mode.capitalize()})")
         self.setGeometry(100, 100, 600, 400)
@@ -17,6 +17,8 @@ class CoreLayoutWindow(QMainWindow):
         self.setFixedSize(1200, 500)  # Set a fixed size
         self.reactor_type=reactor_type
         self.reactor_name=reactor_name
+        self.username=username
+        self.db_name=""
         # Initialize variables
         self.selected_channels = []
         self.selected_button = None
@@ -170,26 +172,54 @@ class CoreLayoutWindow(QMainWindow):
         else:
             if channel in self.selected_channels:
                 self.selected_channels.remove(channel)
-                self.selected_channel_listbox.takeItem(self.selected_channel_listbox.row(channel))
+                # Find the index of the channel in the list box and remove it
+                items = self.selected_channel_listbox.findItems(channel, Qt.MatchExactly)
+                if items:  # Ensure the item exists
+                    row_index = self.selected_channel_listbox.row(items[0])  # Get the row index of the first matching item
+                    self.selected_channel_listbox.takeItem(row_index)  # Remove the item using its row index
+        # Check if no checkboxes are selected
+        if not self.selected_channels:
+            print("No checkboxes selected.")
+            self.edit_btn.setEnabled(False)  # Example: Disable edit button if no channels selected
+            self.view_btn.setEnabled(False)  # Disable view button if no channels selected
+            for db,bt in self.database_buttons.items():
+                bt.setStyleSheet("") 
+            
+   
 
     def select_database_button(self, db_name):
-        if self.selected_button:
-            self.selected_button.setStyleSheet("background-color: lightblue;")
-        self.selected_button = self.database_buttons[db_name]
-        self.selected_button.setStyleSheet("background-color: lightgray;")
-        self.edit_btn.setEnabled(True)
-        self.view_btn.setEnabled(True)
+        if len(self.selected_channels) == 0:
+            print("No Channel Selected")
+            self.edit_btn.setEnabled(False)
+            self.view_btn.setEnabled(False)
+        else:
+            self.db_name = db_name
+            #print(self.db_name)
+            self.edit_btn.setEnabled(True)
+            self.view_btn.setEnabled(True)
+
+            # Set the color of the selected button to grey
+            for db, btn in self.database_buttons.items():
+                if db == db_name:
+                    btn.setStyleSheet("background-color: grey;")  # Selected button
+                else:
+                    btn.setStyleSheet("")  # Reset the others to default
+
 
     def edit_database(self):
         selected_channels_str = ', '.join(self.selected_channels)
+        selected_channels_str=selected_channels_str.split()
         selected_reactor_type=self.reactor_type
         selected_reactor_name=self.reactor_name
-        QMessageBox.information(self, "Edit Database", f"Editing database for channels: {selected_channels_str} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
-        EditPropertyWindow(selected_channels_str,selected_reactor_type,selected_reactor_name)
+        QMessageBox.information(self, "Edit Database", f"User {self.username} Editing database for channels: {selected_channels_str} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
+        self.editPropertyWindow=EditPropertyWindow(self.username, selected_reactor_type, selected_reactor_name, selected_channels_str, self.db_name)
+        self.editPropertyWindow.show()
 
     def view_database(self):
         selected_channels_str = ', '.join(self.selected_channels)
-        QMessageBox.information(self, "View Database", f"Viewing database for channels: {selected_channels_str}")
+        selected_reactor_type=self.reactor_type
+        selected_reactor_name=self.reactor_name
+        QMessageBox.information(self, "View Database", f"User {self.username} Viewing database for channels: {selected_channels_str} Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
 
     def clear_selection(self):
         for checkbox in self.checkboxes.values():
