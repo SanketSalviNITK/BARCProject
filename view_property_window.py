@@ -1,213 +1,190 @@
 import sys
 import sqlite3
-import pandas as pd
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget,
-    QLabel, QListWidget, QPushButton, QTableWidget, QTableWidgetItem,
-    QMessageBox, QFileDialog
-)
-from PyQt5.QtCore import Qt
-import matplotlib.pyplot as plt
+from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtWidgets import QMessageBox
 
-class ViewPropertyWindow(QMainWindow):
-    def __init__(self, selected_channels, database_type):
+from export_data import ExportData
+from manual_entry_window import ManualEntryWindow
+from show_graph import Show_Graph
+
+
+class ViewPropertyWindow(QtWidgets.QWidget):
+    def __init__(self, username, reactor_type, reactor_name, selected_channels, database_type):
         super().__init__()
-        self.setWindowTitle("View Properties")
+        self.setWindowTitle("Edit Properties")
         self.setGeometry(100, 100, 1200, 600)
-
+        self.username=username
         self.selected_channels = selected_channels
         self.database_type = database_type
-
-        # Initialize SQLite connection
-        self.conn = sqlite3.connect('iphwr_analysis.db')
-        self.c = self.conn.cursor()
-
-        # Create a central widget and set it as the central widget of the main window
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-
-        # Create main layout
-        main_layout = QHBoxLayout(central_widget)
-
-        # Frame for selected channels
-        self.channel_frame = QWidget()
-        self.channel_layout = QVBoxLayout()
-        self.channel_frame.setLayout(self.channel_layout)
-        
-        self.channel_label = QLabel("Selected Channels")
-        self.channel_layout.addWidget(self.channel_label)
-        
-        self.selected_channel_listbox = QListWidget()
-        self.selected_channel_listbox.addItems(selected_channels)
-        self.channel_layout.addWidget(self.selected_channel_listbox)
-
-        main_layout.addWidget(self.channel_frame)
-
-        # Frame for properties
-        self.property_frame = QWidget()
-        self.property_layout = QVBoxLayout()
-        self.property_frame.setLayout(self.property_layout)
-        main_layout.addWidget(self.property_frame)
-
+        self.selected_channel=""
+        self.selected_property=""
         # List of properties
         self.properties = [
-            "UTS axial", "UTS transverse", "YS axial", "YS transverse",
+            "", "UTS axial", "UTS transverse", "YS axial", "YS transverse",
             "Elongation axial", "Elongation transverse", "Hardness", "Ki axial",
             "Ki transverse", "Density (rho)", "Poisson ratio"
         ]
 
-        # Property selection buttons
-        self.property_buttons = {}
-        for prop in self.properties:
-            button = QPushButton(prop)
-            button.clicked.connect(lambda checked, p=prop: self.select_property(p))
-            self.property_layout.addWidget(button)
-            self.property_buttons[prop] = button
+        # Create main layout
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+
+        # Create horizontal layout for channel frame and property frame
+        self.horizontal_layout = QtWidgets.QHBoxLayout()
+
+        # Frame for selected channels
+        self.channel_frame = QtWidgets.QFrame(self)
+        self.channel_layout = QtWidgets.QVBoxLayout(self.channel_frame)
+
+        self.channel_layout.addWidget(QtWidgets.QLabel("Selected Channels", font=QtGui.QFont("Helvetica", 12)),
+                                      alignment=QtCore.Qt.AlignCenter)
+
+        self.selected_channel_listbox = QtWidgets.QListWidget()
+        self.selected_channel_listbox.currentRowChanged.connect(self.populate_table_with_selected_channel)
+        self.channel_layout.addWidget(self.selected_channel_listbox)
+
+        for channel in selected_channels:
+            self.selected_channel_listbox.addItem(channel)
+
+        # Set the channel frame to occupy 10% width
+        self.channel_frame.setFixedWidth(120)  # Adjust width as needed
+        self.horizontal_layout.addWidget(self.channel_frame)
+
+        # Frame for properties and table
+        self.property_frame = QtWidgets.QFrame(self)
+        self.property_layout = QtWidgets.QVBoxLayout(self.property_frame)
+
+        self.property_layout.addWidget(QtWidgets.QLabel("Select Property to View", font=QtGui.QFont("Helvetica", 12)),
+                                       alignment=QtCore.Qt.AlignLeft)
+
+        # Combo box to select properties
+        self.property_combo = QtWidgets.QComboBox()
+        self.property_combo.setFixedWidth(120)
+        self.property_combo.addItems(self.properties)
+        self.property_combo.currentIndexChanged.connect(self.property_selected)  # Connect the signal to a method
+        self.property_layout.addWidget(self.property_combo)
+
 
         # Table to display existing data from the database
-        self.table = QTableWidget()
-        self.property_layout.addWidget(self.table)
+        self.table_frame = QtWidgets.QFrame(self.property_frame)
+        self.table_layout = QtWidgets.QVBoxLayout(self.table_frame)
 
-        # Buttons for Graph and Export
-        self.graph_button = QPushButton("Graph")
-        self.graph_button.clicked.connect(self.plot_graph)
-        self.property_layout.addWidget(self.graph_button)
+        # Define columns for TableView
+        self.tree = QtWidgets.QTableWidget()
+        self.tree.setColumnCount(24)  # Set the number of columns
+        self.tree.setHorizontalHeaderLabels([
+            "Channel", "Property", "Value", "Year", "HOY", "Length", "Entry_by", "Entry_Date", "Remark",
+            "Cell1", "Cell2", "Cell3", "Cell4", "Cell5", "Cell6", "Cell7", "Cell8", "Cell9", "Cell10",
+            "Cell11", "Cell12", "Cell13", "Cell14", "Cell15", "Cell16", "Cell17", "Cell18", "Cell19",
+            "Cell20", "Cell21", "Cell22", "Cell23", "Cell24"
+        ])
+        self.table_layout.addWidget(self.tree)
 
-        self.export_button = QPushButton("Export")
-        self.export_button.clicked.connect(self.export_to_excel)
-        self.property_layout.addWidget(self.export_button)
+        self.property_layout.addWidget(self.table_frame)
 
-        # Populate the table with properties initially
-        self.selected_property = None
-        self.populate_table()
+        self.horizontal_layout.addWidget(self.property_frame)
+        self.main_layout.addLayout(self.horizontal_layout)
 
-    def select_property(self, property_name):
-        """Select a property and update the table based on the selection."""
-        self.selected_property = property_name
-        self.populate_table()
+        # Create footer frame for buttons
+        self.footer_frame = QtWidgets.QFrame(self)
+        self.footer_layout = QtWidgets.QHBoxLayout(self.footer_frame)
+        self.footer_layout.setSpacing(10)  # Add spacing between buttons
+        self.footer_frame.setFixedHeight(50)  # Adjust height of footer frame if necessary
 
-    def plot_graph(self):
-        if not self.selected_channel_listbox.currentItem():
-            QMessageBox.critical(self, "Error", "Please select a channel.")
+        # Back button
+        self.back_button = QtWidgets.QPushButton("Back")
+        self.back_button.setFixedSize(80, 30)  # Set smaller size for Back button
+        self.back_button.clicked.connect(self.go_back)
+        self.footer_layout.addWidget(self.back_button)
+
+        # Graph button
+        self.graph_button = QtWidgets.QPushButton("Graph")
+        self.graph_button.setFixedSize(80, 30)  # Set smaller size for Graph button
+        self.graph_button.clicked.connect(self.show_graph)
+        self.footer_layout.addWidget(self.graph_button)
+
+        # Export Button
+        self.export_button = QtWidgets.QPushButton("Export")
+        self.export_button.setFixedSize(80, 30)  # Set smaller size for Export button
+        self.export_button.clicked.connect(self.export_data)
+        self.footer_layout.addWidget(self.export_button)
+
+        # Add footer frame to the main layout
+        self.main_layout.addWidget(self.footer_frame)
+
+    def go_back(self):
+        """Close the current window and go back to the previous window."""
+        self.close()
+        
+    def show_graph(self):
+        Show_Graph(self,self.cursor, self.selected_channel,self.selected_property)
+    
+    def export_data(self):
+        ExportData.export_to_excel(self, self.selected_channel,self.selected_property)
+    
+    def populate_table(self, channel, property):
+        """Fetch data from the database and populate the TableView for the selected channel."""
+        # Check if a channel is selected
+        if not channel or not self.database_type:
             return
-        
-        selected_channel = self.selected_channel_listbox.currentItem().text()
-        
-        if selected_channel and self.selected_property:
-            try:
-                # Query to retrieve data from the database
-                query = """
-                SELECT cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8,
-                       cell9, cell10, cell11, cell12, cell13, cell14, cell15,
-                       cell16, cell17, cell18, cell19, cell20, cell21, cell22
-                FROM properties
-                WHERE channel_id = ? AND property_name = ?
-                """
-                self.c.execute(query, (selected_channel, self.selected_property))
-                rows = self.c.fetchall()
 
-                if not rows:
-                    QMessageBox.critical(self, "Error", "No data available for the selected channel and property.")
-                    return
+        conn = sqlite3.connect('iphwr_analysis.db')
+        cursor = conn.cursor()
+    
+        # Define the columns for the table
+        headers = [
+            'Channel ID', 'Property Name', 'Year', 'HOY', 'Length', 'Entry By', 'Entry Date', 'Remark',
+            'Cell1', 'Cell2', 'Cell3', 'Cell4', 'Cell5', 'Cell6', 'Cell7', 'Cell8', 'Cell9', 'Cell10',
+            'Cell11', 'Cell12', 'Cell13', 'Cell14', 'Cell15', 'Cell16', 'Cell17', 'Cell18', 'Cell19',
+            'Cell20', 'Cell21', 'Cell22', 'Cell23', 'Cell24'
+        ]
 
-                # Convert the retrieved data to a DataFrame
-                df = pd.DataFrame(rows, columns=[f"Cell{i+1}" for i in range(len(rows[0]))])
-                df = df.apply(pd.to_numeric, errors='coerce').fillna(0)
+        # Set column count and headers
+        self.tree.setColumnCount(len(headers))
+        self.tree.setHorizontalHeaderLabels(headers)
 
-                # Create a plot
-                fig, ax = plt.subplots(figsize=(10, 6))
-                for index, row in df.iterrows():
-                    ax.plot(df.columns, row.values, marker='o', label=f"Entry {index + 1}")
-
-                ax.set_title(f"{self.selected_property} - {selected_channel}")
-                ax.set_xlabel("Cells")
-                ax.set_ylabel("Value")
-                ax.legend()
-
-                # Display the plot
-                plt.show()
-
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to plot graph: {e}")
-
-    def export_to_excel(self):
-        try:
-            if not self.selected_channel_listbox.currentItem():
-                QMessageBox.critical(self, "Error", "Please select a channel.")
-                return
-            
-            selected_channel = self.selected_channel_listbox.currentItem().text()
-            
-            if not self.selected_property:
-                QMessageBox.critical(self, "Error", "Property must be selected.")
-                return
-
-            query = "SELECT * FROM properties WHERE channel_id = ? AND property_name = ?"
-            df = pd.read_sql_query(query, self.conn, params=(selected_channel, self.selected_property))
-
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save File", "", "Excel Files (*.xlsx)")
-            if file_path:
-                df.to_excel(file_path, index=False)
-                QMessageBox.information(self, "Success", f"Data exported successfully to {file_path}.")
-                self.display_exported_data(file_path)
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to export data: {str(e)}")
-
-    def display_exported_data(self, file_path):
-        try:
-            df = pd.read_excel(file_path)
-
-            # Clear existing data in the table
-            self.table.setRowCount(0)
-            self.table.setColumnCount(0)
-
-            self.table.setColumnCount(len(df.columns))
-            self.table.setRowCount(len(df))
-
-            # Set headers
-            self.table.setHorizontalHeaderLabels(df.columns)
-
-            for row_index, row in df.iterrows():
-                for col_index, value in enumerate(row):
-                    self.table.setItem(row_index, col_index, QTableWidgetItem(str(value)))
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to display exported data: {str(e)}")
-
-    def populate_table(self):
-        """Fetch data from the database and populate the table based on selected channels and property."""
         # Clear the current table
-        self.table.setRowCount(0)
-        self.table.setColumnCount(0)
+        self.tree.setRowCount(0)  # Clear existing data in the table
 
-        # Fetch the data for the selected channels and database type
-        for channel in self.selected_channels:
-            query = '''SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark,
-                              Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,
-                              Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19,
-                              Cell20, Cell21, Cell22, Cell23, Cell24
-                       FROM properties
-                       WHERE channel_id = ? AND database_type = ?'''
+        # Build the SQL query based on whether a property is selected or not
+        if property == "":
+            print("No specific property selected, showing all properties")
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=?"
+            cursor.execute(query, (channel,))
+        else:
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=?"
+            cursor.execute(query, (channel, property))
+        rows = cursor.fetchall()
 
-            if self.selected_property:
-                query += ' AND property_name = ?'
-                self.c.execute(query, (channel, self.database_type, self.selected_property))
-            else:
-                self.c.execute(query, (channel, self.database_type))
+        # Populate the table with fetched data
+        for row in rows:
+            row_position = self.tree.rowCount()
+            self.tree.insertRow(row_position)
+            for column_index, item in enumerate(row):
+                self.tree.setItem(row_position, column_index, QtWidgets.QTableWidgetItem(str(item)))
 
-            rows = self.c.fetchall()
+        conn.close()
+    
 
-            # Populate the table with fetched data
-            for row in rows:
-                row_position = self.table.rowCount()
-                self.table.insertRow(row_position)
-                for col_index, item in enumerate(row):
-                    self.table.setItem(row_position, col_index, QTableWidgetItem(str(item)))
+    def populate_table_with_selected_channel(self, row):
+        """Populate the table with properties of the selected channel."""
+        if row < 0:  # If no valid channel is selected
+            return
+        selected_channel = self.selected_channels[row]
+        self.selected_channel=selected_channel
+        if self.selected_channel=="":
+            QMessageBox.information("Please select a channel to edit")
+        else:
+            print("Before table is populated ",self.selected_property)
+            self.populate_table(selected_channel, self.selected_property)
+            
+    def property_selected(self):
+        self.selected_property = self.property_combo.currentText()  # Get the currently selected property
+        print(f"Selected Property: {self.selected_property}")  # Print the selected property
+        self.populate_table(self.selected_channel,self.selected_property)
+
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    selected_channels = ["Channel 1", "Channel 2", "Channel 3"]  # Example selected channels
-    database_type = "example_db"  # Replace with actual database type
-    window = ViewPropertyWindow(selected_channels, database_type)
+    app = QtWidgets.QApplication(sys.argv)
+    window = ViewPropertyWindow("Admin","220_IPHWR", "RAPS-1", ["A08","A09"], "Mechanical")
     window.show()
     sys.exit(app.exec_())

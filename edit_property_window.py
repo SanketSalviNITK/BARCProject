@@ -213,8 +213,9 @@ class EditPropertyWindow(QtWidgets.QWidget):
         print(f"Selected Property: {self.selected_property}")  # Print the selected property
         self.populate_table(self.selected_channel,self.selected_property)
 
+
 #if __name__ == "__main__":
 #    app = QtWidgets.QApplication(sys.argv)
-#    window = EditPropertyWindow(["Example_Channel", "2"], "Type A")
+#    window = EditPropertyWindow("Admin","220_IPHWR", "RAPS-1", ["A08","A09"], "Mechanical")
 #    window.show()
 #    sys.exit(app.exec_())
