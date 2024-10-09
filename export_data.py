@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QMainWindow
 )
 
-from display_exported__data import disp_exported_data
+#from display_exported__data import disp_exported_data
 
 
 class ExportData(QMainWindow):
@@ -37,7 +37,7 @@ class ExportData(QMainWindow):
             if file_path:
                 df.to_excel(file_path, index=False)
                 QMessageBox.information(self, "Success", f"Data exported successfully to {file_path}.")
-                disp_exported_data(file_path)
+                #disp_exported_data(file_path)
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to export data: {str(e)}")

@@ -59,7 +59,7 @@ class IPHWRDatabase(QWidget):
 
         # Buttons for Reactor Categories
         reactor_buttons = [
-            "220 IPHWR", "540 IPHWR", "700 IPHWR", "Back", "Logout", "Help"
+            "220 IPHWR", "540 IPHWR", "700 IPHWR", "Fetch", "Logout", "Help"
         ]
         for button_name in reactor_buttons:
             button = QPushButton(button_name)
@@ -131,6 +131,8 @@ class IPHWRDatabase(QWidget):
                 self.is_220_loaded = False
                 self.is_540_loaded = False
                 self.is_700_loaded = True  # Mark as loaded
+        elif sender.text()=="Fetch":
+            self.fetch_data()
         else:
             self.load_work_in_progress(sender.text())
             self.is_220_loaded = False
