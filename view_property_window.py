@@ -11,7 +11,7 @@ from show_graph import Show_Graph
 class ViewPropertyWindow(QtWidgets.QWidget):
     def __init__(self, username, reactor_type, reactor_name, selected_channels, database_type):
         super().__init__()
-        self.setWindowTitle("Edit Properties")
+        self.setWindowTitle("View Properties")
         self.setGeometry(100, 100, 1200, 600)
         self.username=username
         self.selected_channels = selected_channels
@@ -149,7 +149,7 @@ class ViewPropertyWindow(QtWidgets.QWidget):
         if property == "":
             print("No specific property selected, showing all properties")
             query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=?"
-            cursor.execute(query, (channel,))
+            cursor.execute(query, (channel,property))
         else:
             query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=?"
             cursor.execute(query, (channel, property))

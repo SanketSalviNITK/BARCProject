@@ -217,13 +217,13 @@ class CoreLayoutWindow(QMainWindow):
         self.editPropertyWindow.show()
 
     def view_database(self):
-        selected_channels_str = ', '.join(self.selected_channels)
+        selected_channels_str = ','.join(self.selected_channels)
         selected_reactor_type=self.reactor_type
         selected_reactor_name=self.reactor_name
         QMessageBox.information(self, "View Database", f"User {self.username} Viewing database for channels: {selected_channels_str} Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
         self.viewPropertyWindow=ViewPropertyWindow(self.username,self.reactor_type,self.reactor_name, selected_channels_str.split(","), self.db_name)
         self.viewPropertyWindow.show()
-        
+
     def clear_selection(self):
         for checkbox in self.checkboxes.values():
             checkbox.setChecked(False)

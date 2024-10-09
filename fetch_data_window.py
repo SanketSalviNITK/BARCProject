@@ -147,6 +147,7 @@ class FetchWindow(QWidget):
 
         rows = self.fetch_data(channel_id, database_type, property_name, self.reactor_type, self.reactor_name, cell_number)
         self.data_display.clear()
+        self.update_path()
 
         if not rows:
             self.data_display.setPlainText("No data found for the selected options.")
