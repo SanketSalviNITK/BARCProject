@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
+from fetch_data_window import FetchWindow
 from load_220_iphwr import load_220_iphwr
 from load_540_iphwr import load_540_iphwr
 from load_700_iphwr import load_700_iphwr
@@ -132,7 +133,8 @@ class IPHWRDatabase(QWidget):
                 self.is_540_loaded = False
                 self.is_700_loaded = True  # Mark as loaded
         elif sender.text()=="Fetch":
-            self.fetch_data()
+            self.fetch_window = FetchWindow()
+            self.fetch_window.show()
         else:
             self.load_work_in_progress(sender.text())
             self.is_220_loaded = False
