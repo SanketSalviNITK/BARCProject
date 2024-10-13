@@ -14,6 +14,8 @@ class ViewPropertyWindow(QtWidgets.QWidget):
         self.setWindowTitle("View Properties")
         self.setGeometry(100, 100, 1200, 600)
         self.username=username
+        self.reactor_type=reactor_type
+        self.reactor_name=reactor_name
         self.selected_channels = selected_channels
         self.database_type = database_type
         self.selected_channel=""
@@ -148,11 +150,11 @@ class ViewPropertyWindow(QtWidgets.QWidget):
         # Build the SQL query based on whether a property is selected or not
         if property == "":
             print("No specific property selected, showing all properties")
-            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=?"
-            cursor.execute(query, (channel,property))
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, self.reactor_type, self.reactor_name))
         else:
-            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=?"
-            cursor.execute(query, (channel, property))
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, property, self.reactor_type, self.reactor_name))
         rows = cursor.fetchall()
 
         # Populate the table with fetched data

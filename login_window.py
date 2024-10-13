@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QGridLayout
 from PyQt5.QtCore import Qt
 from main_window import MainWindow
 from PyQt5.QtGui import QFont
+from create_db import create_database
 
 
 class LoginWindow(QWidget):
@@ -59,6 +60,7 @@ class LoginWindow(QWidget):
 
         if username == "a" and password == "a":
             print("Login successful")
+            create_database
             self.open_main_window(username)  # Open the main application window
             self.close()  # Close the login window
         else:

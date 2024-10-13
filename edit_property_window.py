@@ -12,6 +12,8 @@ class EditPropertyWindow(QtWidgets.QWidget):
         self.setWindowTitle("Edit Properties")
         self.setGeometry(100, 100, 1200, 600)
         self.username=username
+        self.reactor_type=reactor_type
+        self.reactor_name=reactor_name
         self.selected_channels = selected_channels
         self.database_type = database_type
         self.selected_channel=""
@@ -147,8 +149,57 @@ class EditPropertyWindow(QtWidgets.QWidget):
 
     def import_data(self):
         """Handle import of data."""
-        # Logic for import will be implemented here
-        pass
+        # Open a file dialog to select a CSV file
+        file_dialog = QtWidgets.QFileDialog(self)
+        file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
+        file_dialog.setNameFilter("CSV Files (*.csv);;All Files (*)")
+        file_dialog.setViewMode(QtWidgets.QFileDialog.List)
+
+        if file_dialog.exec_():
+            file_paths = file_dialog.selectedFiles()
+            if file_paths:
+                # Assuming the first selected file is the one we want to import
+                selected_file = file_paths[0]
+                try:
+                    # Open the selected CSV file and read its content
+                    with open(selected_file, 'r') as file:
+                        # Read the CSV file line by line
+                        lines = file.readlines()
+
+                    # Process the content of the CSV file
+                    for line in lines:
+                        # Assuming CSV format: channel_id, property_name, year, HOY, length, entry_by, entry_date, remark, ...
+                        data = line.strip().split(',')
+                        if len(data) < 8:  # Ensure there are enough fields
+                            continue
+
+                        channel_id, property_name, year, hoy, length, entry_by, entry_date, remark, *cells = data
+
+                        # Insert or update the data into the database
+                        conn = sqlite3.connect('iphwr_analysis.db')
+                        cursor = conn.cursor()
+
+                        # Here, you might want to use an INSERT or UPDATE query based on your requirements
+                        query = """
+                        INSERT INTO properties (channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark,
+                                                Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9,
+                                                Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17,
+                                                Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """
+                        cursor.execute(query, (channel_id, property_name, year, hoy, length, entry_by, entry_date, remark,
+                                            *cells))
+
+                        conn.commit()
+                        conn.close()
+
+                    QMessageBox.information(self, "Success", "Data imported successfully!")
+                    # Optionally, you might want to refresh the table view after import
+                    self.populate_table(self.selected_channel, self.selected_property)
+
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"An error occurred while importing data: {str(e)}")
+
 
     def populate_table(self, channel, property):
         """Fetch data from the database and populate the TableView for the selected channel."""
@@ -179,11 +230,11 @@ class EditPropertyWindow(QtWidgets.QWidget):
         # Build the SQL query based on whether a property is selected or not
         if property == "":
             print("No specific property selected, showing all properties")
-            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=?"
-            cursor.execute(query, (channel,))
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, self.reactor_type, self.reactor_name))
         else:
-            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=?"
-            cursor.execute(query, (channel, property))
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, property, self.reactor_type, self.reactor_name))
         rows = cursor.fetchall()
 
         # Populate the table with fetched data

@@ -6,7 +6,7 @@ def create_database():
     cursor = conn.cursor()
 
     # Drop the properties table if it exists
-    cursor.execute('''DROP TABLE IF EXISTS properties;''')
+    #cursor.execute('''DROP TABLE IF EXISTS properties;''')
 
     # Create the properties table with additional fields
     cursor.execute(''' 
