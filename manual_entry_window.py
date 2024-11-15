@@ -1,19 +1,19 @@
 import sys
 import sqlite3
-from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QScrollArea, QWidget, 
-                             QMessageBox)
+from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, 
+                             QMessageBox, QScrollArea, QWidget)
+from datetime import datetime
 
 class ManualEntryWindow(QDialog):
+
     def __init__(self, parent, username, reactor_type, reactor_name, selected_channel, database_type, selected_property):
         super().__init__(parent)
-        self.username = username  # Store username if needed
+        self.username = username
         self.selected_channel = selected_channel
         self.database_type = database_type
         self.selected_property = selected_property
-        self.setWindowTitle("Manual Entry for Channel "+self.selected_channel+" for "+self.selected_property)
+        self.setWindowTitle(f"Manual Entry for Channel {self.selected_channel} for {self.selected_property}")
         self.setGeometry(100, 100, 400, 600)
-        print(self.username, reactor_type, reactor_name, self.selected_channel,self.database_type,self.selected_property)
 
         # Create layout
         layout = QVBoxLayout()
@@ -29,18 +29,15 @@ class ManualEntryWindow(QDialog):
         # Create layout for scrollable widget
         self.scroll_layout = QVBoxLayout(self.scroll_widget)
 
-        # Check and add missing columns in the database
-        self.update_database_schema()
-
         # Create entry fields with prefilled values
         self.entries = {}
         fields = {
-            "Year": "2023",
-            "HOY": "100",
-            "Length": "10.5",
+            "Year": "",
+            "HOY": "",
+            "Length": "",
             "Entry_by": self.username,
-            "Entry_Date": "2023-10-04",
-            "Remark": "Test entry",
+            "Entry_Date": datetime.now().strftime("%d-%m-%y"),  # Set default to current date
+            "Remark": "",
             "Reactor_Type": reactor_type,
             "Reactor_Name": reactor_name,
         }
@@ -53,32 +50,28 @@ class ManualEntryWindow(QDialog):
             self.scroll_layout.addWidget(entry)
             self.entries[field] = entry
 
-        # Add cell entries
-        for i in range(1, 25):
+        # Add cell entries with position names (for 100 cells and positions)
+        for i in range(1, 101):
             label = QLabel(f"Cell{i}")
             self.scroll_layout.addWidget(label)
-            entry = QLineEdit()
-            entry.setText(f"Test Value {i}")  # Prefill with test values
+            entry = QLineEdit()  # Input for the Cell value
             self.scroll_layout.addWidget(entry)
             self.entries[f"Cell{i}"] = entry
+            
+            position_label = QLabel(f"Position{i}")
+            self.scroll_layout.addWidget(position_label)
+            position_entry = QLineEdit()  # Input for the Position value
+            self.scroll_layout.addWidget(position_entry)
+            self.entries[f"Position{i}"] = position_entry  # Store position input fields
 
-        # Create Save and Cancel buttons
+        # Add the Save button
         save_button = QPushButton("Save")
-        save_button.clicked.connect(self.save_manual_entry)
         self.scroll_layout.addWidget(save_button)
+        save_button.clicked.connect(self.save_manual_entry)  # Connect the button to the save method
 
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        self.scroll_layout.addWidget(cancel_button)
-
+        # Add the scroll area to the main layout
         layout.addWidget(self.scroll_area)
         self.setLayout(layout)
-
-    def update_database_schema(self):
-        # This function can be implemented to ensure the schema is as expected,
-        # but since we are dropping and creating the table in the previous function,
-        # we can leave this empty or use it to add further checks in the future.
-        pass
 
     def save_manual_entry(self):
         # Collect the data from the entries
@@ -92,23 +85,26 @@ class ManualEntryWindow(QDialog):
         conn = sqlite3.connect('iphwr_analysis.db')
         cursor = conn.cursor()
 
-        # Insert manual entries for each selected channel (using placeholder channel for demonstration)
-        channel = self.selected_channel  # Placeholder channel
-        property_name = self.selected_property  # Placeholder property name
+        # Check for duplicate entries for the same channel, Year, HOY, and property
+        cursor.execute('''SELECT COUNT(*) FROM properties 
+                          WHERE channel_id = ? AND Year = ? AND HOY = ? AND property_name = ?''', 
+                       (self.selected_channel, data["Year"], data["HOY"], self.selected_property))
+        result = cursor.fetchone()
 
-        # Insert into the properties table with all required columns
-        cursor.execute('''INSERT INTO properties (channel_id, property_name, database_type, Year, HOY, Length, Entry_by, Entry_Date, Remark,
-                        Reactor_Type, Reactor_Name,
-                        Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10,
-                        Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20,
-                        Cell21, Cell22, Cell23, Cell24)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                   (channel, property_name, self.database_type, data["Year"], data["HOY"], data["Length"], data["Entry_by"], data["Entry_Date"], data["Remark"],
-                    data["Reactor_Type"], data["Reactor_Name"],
-                    data["Cell1"], data["Cell2"], data["Cell3"], data["Cell4"], data["Cell5"], data["Cell6"], data["Cell7"], data["Cell8"],
-                    data["Cell9"], data["Cell10"], data["Cell11"], data["Cell12"], data["Cell13"], data["Cell14"], data["Cell15"],
-                    data["Cell16"], data["Cell17"], data["Cell18"], data["Cell19"], data["Cell20"], data["Cell21"], data["Cell22"],
-                    data["Cell23"], data["Cell24"]))
+        if result[0] > 0:
+            # Entry already exists, show a warning message
+            QMessageBox.warning(self, "Warning", "An entry already exists for this Channel, Year, HOY, and Property!")
+            conn.close()
+            return
+
+        # Insert into the properties table with all required columns, including positions for 100 cells
+        cursor.execute(f'''INSERT INTO properties (channel_id, property_name, database_type, Year, HOY, Length, Entry_by, Entry_Date, Remark,
+                            Reactor_Type, Reactor_Name, {", ".join([f"Cell{i}" for i in range(1, 101)])}, {", ".join([f"Position{i}" for i in range(1, 101)])})
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+                                {", ".join(["?" for _ in range(1, 201)])})''',
+                    (self.selected_channel, self.selected_property, self.database_type, data["Year"], data["HOY"], data["Length"], data["Entry_by"], data["Entry_Date"], data["Remark"],
+                        data["Reactor_Type"], data["Reactor_Name"], 
+                        *(data[f"Cell{i}"] for i in range(1, 101)), *(data[f"Position{i}"] for i in range(1, 101)) ))
 
         conn.commit()
         conn.close()

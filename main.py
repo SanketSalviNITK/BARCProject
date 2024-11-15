@@ -7,7 +7,9 @@ if __name__ == "__main__":
 
     # Create and display the login window
     login_window = LoginWindow()
+    login_window.showMaximized()
     login_window.show()
 
     sys.exit(app.exec_())
+
 

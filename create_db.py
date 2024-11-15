@@ -1,14 +1,14 @@
 import sqlite3
 
 def create_database():
-    # Connect to the SQLite database (it will be created if it doesn't exist)
+    """Create the SQLite database and properties table."""
     conn = sqlite3.connect('iphwr_analysis.db')
     cursor = conn.cursor()
 
     # Drop the properties table if it exists
     cursor.execute('''DROP TABLE IF EXISTS properties;''')
 
-    # Create the properties table with additional fields
+    # Create the properties table with the necessary fields
     cursor.execute(''' 
     CREATE TABLE properties (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,34 +23,11 @@ def create_database():
         Entry_by TEXT,
         Entry_Date TEXT,
         Remark TEXT,
-        Cell1 TEXT,
-        Cell2 TEXT,
-        Cell3 TEXT,
-        Cell4 TEXT,
-        Cell5 TEXT,
-        Cell6 TEXT,
-        Cell7 TEXT,
-        Cell8 TEXT,
-        Cell9 TEXT,
-        Cell10 TEXT,
-        Cell11 TEXT,
-        Cell12 TEXT,
-        Cell13 TEXT,
-        Cell14 TEXT,
-        Cell15 TEXT,
-        Cell16 TEXT,
-        Cell17 TEXT,
-        Cell18 TEXT,
-        Cell19 TEXT,
-        Cell20 TEXT,
-        Cell21 TEXT,
-        Cell22 TEXT,
-        Cell23 TEXT,
-        Cell24 TEXT
+        {fields}
     );
-    ''')
-
-    # Commit the changes and close the connection
+    '''.format(fields=', '.join(f'Cell{i} TEXT, Position{i} TEXT' for i in range(1, 101))))
+    
+    # Commit changes and close the connection
     conn.commit()
     conn.close()
 
