@@ -14,6 +14,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
         super().__init__() 
         self.setWindowTitle("Edit Properties")
         self.setGeometry(100, 100, 1200, 600)
+<<<<<<< HEAD
         self.setStyleSheet(""" 
             QWidget {
                 background: qlineargradient(
@@ -28,6 +29,11 @@ class EditPropertyWindow(QtWidgets.QWidget):
         self.username = username
         self.reactor_type = reactor_type
         self.reactor_name = reactor_name
+=======
+        self.username=username
+        self.reactor_type=reactor_type
+        self.reactor_name=reactor_name
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
         self.selected_channels = selected_channels
         self.database_type = database_type
         self.selected_channel = ""
@@ -35,7 +41,13 @@ class EditPropertyWindow(QtWidgets.QWidget):
 
         # List of properties
         self.properties = [
+<<<<<<< HEAD
             "Ingot and manufacturing rout", "Chemical", "Mechanical", "Dimensional"           
+=======
+            "", "UTS axial", "UTS transverse", "YS axial", "YS transverse",
+            "Elongation axial", "Elongation transverse", "Hardness", "Ki axial",
+            "Ki transverse", "Density (rho)", "Poisson ratio"
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
         ]
 
         # Main layout
@@ -219,6 +231,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
 
     def open_manual_entry(self, username, reactor_type, reactor_name, selected_channel, database_type, selected_property):
         """Handle manual entry of properties."""
+<<<<<<< HEAD
         if not selected_channel:
             QMessageBox.information(self, "Info", "Please select the channel to be edited")
             return
@@ -254,6 +267,77 @@ class EditPropertyWindow(QtWidgets.QWidget):
     def populate_table(self, channel):
         """Populate the table with data from the database for the selected channel."""
         if not channel or not self.database_type or not self.selected_property:
+=======
+        if self.selected_property=="":
+            QMessageBox.information(self,"Error","Please select the property to be loaded")
+        else:
+            print("Selected channel is "+selected_channel)
+            self.manualEntryWindow=ManualEntryWindow(self, username, reactor_type, reactor_name, selected_channel, database_type, selected_property)
+            self.manualEntryWindow.show()
+        # Logic for manual entry will be implemented here
+        pass
+
+    def import_data(self):
+        """Handle import of data."""
+        # Open a file dialog to select a CSV file
+        file_dialog = QtWidgets.QFileDialog(self)
+        file_dialog.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
+        file_dialog.setNameFilter("CSV Files (*.csv);;All Files (*)")
+        file_dialog.setViewMode(QtWidgets.QFileDialog.List)
+
+        if file_dialog.exec_():
+            file_paths = file_dialog.selectedFiles()
+            if file_paths:
+                # Assuming the first selected file is the one we want to import
+                selected_file = file_paths[0]
+                try:
+                    # Open the selected CSV file and read its content
+                    with open(selected_file, 'r') as file:
+                        # Read the CSV file line by line
+                        lines = file.readlines()
+
+                    # Process the content of the CSV file
+                    for line in lines:
+                        # Assuming CSV format: channel_id, property_name, year, HOY, length, entry_by, entry_date, remark, ...
+                        data = line.strip().split(',')
+                        if len(data) < 8:  # Ensure there are enough fields
+                            continue
+
+                        channel_id, property_name, year, hoy, length, entry_by, entry_date, remark, *cells = data
+
+                        # Insert or update the data into the database
+                        conn = sqlite3.connect('iphwr_analysis.db')
+                        cursor = conn.cursor()
+
+                        # Here, you might want to use an INSERT or UPDATE query based on your requirements
+                        query = """
+                        INSERT INTO properties (channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark,
+                                                Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9,
+                                                Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17,
+                                                Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """
+                        cursor.execute(query, (channel_id, property_name, year, hoy, length, entry_by, entry_date, remark,
+                                            *cells))
+
+                        conn.commit()
+                        conn.close()
+
+                    QMessageBox.information(self, "Success", "Data imported successfully!")
+                    # Optionally, you might want to refresh the table view after import
+                    self.populate_table(self.selected_channel, self.selected_property)
+
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"An error occurred while importing data: {str(e)}")
+
+
+    def populate_table(self, channel, property):
+        """Fetch data from the database and populate the TableView for the selected channel."""
+        if property=="":
+            print("No property selected")
+        # Check if a channel is selected
+        if not channel or not self.database_type:
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
             return
 
         try:
@@ -285,6 +369,7 @@ class EditPropertyWindow(QtWidgets.QWidget):
             self.selected_channel = self.selected_channel_listbox.item(current_row).text()
             self.populate_table(self.selected_channel)
 
+<<<<<<< HEAD
     def property_selected(self):
         """Handle the property selection from the combo box."""  
         self.selected_property = self.property_combo.currentText()
@@ -293,3 +378,48 @@ class EditPropertyWindow(QtWidgets.QWidget):
     def refresh_table(self):
         """Refresh the table after manual entry or import."""
         self.populate_table(self.selected_channel)
+=======
+        # Build the SQL query based on whether a property is selected or not
+        if property == "":
+            print("No specific property selected, showing all properties")
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, self.reactor_type, self.reactor_name))
+        else:
+            query = "SELECT channel_id, property_name, Year, HOY, Length, Entry_by, Entry_Date, Remark, Cell1, Cell2, Cell3, Cell4, Cell5, Cell6, Cell7, Cell8, Cell9, Cell10, Cell11, Cell12, Cell13, Cell14, Cell15, Cell16, Cell17, Cell18, Cell19, Cell20, Cell21, Cell22, Cell23, Cell24 FROM properties WHERE channel_id=? AND property_name=? AND reactor_type=? AND reactor_name=?"
+            cursor.execute(query, (channel, property, self.reactor_type, self.reactor_name))
+        rows = cursor.fetchall()
+
+        # Populate the table with fetched data
+        for row in rows:
+            row_position = self.tree.rowCount()
+            self.tree.insertRow(row_position)
+            for column_index, item in enumerate(row):
+                self.tree.setItem(row_position, column_index, QtWidgets.QTableWidgetItem(str(item)))
+
+        conn.close()
+    
+
+    def populate_table_with_selected_channel(self, row):
+        """Populate the table with properties of the selected channel."""
+        if row < 0:  # If no valid channel is selected
+            return
+        selected_channel = self.selected_channels[row]
+        self.selected_channel=selected_channel
+        if self.selected_channel=="":
+            QMessageBox.information("Please select a channel to edit")
+        else:
+            print("Before table is populated ",self.selected_property)
+            self.populate_table(selected_channel, self.selected_property)
+            
+    def property_selected(self):
+        self.selected_property = self.property_combo.currentText()  # Get the currently selected property
+        print(f"Selected Property: {self.selected_property}")  # Print the selected property
+        self.populate_table(self.selected_channel,self.selected_property)
+
+
+#if __name__ == "__main__":
+#    app = QtWidgets.QApplication(sys.argv)
+#    window = EditPropertyWindow("Admin","220_IPHWR", "RAPS-1", ["A08","A09"], "Mechanical")
+#    window.show()
+#    sys.exit(app.exec_())
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a

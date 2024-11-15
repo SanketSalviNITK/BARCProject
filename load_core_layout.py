@@ -12,6 +12,7 @@ from thermal_property_view_window import ThermalPropertyViewWindow
 from physical_data_view_window import PhysicalDataViewwindow
 from reactor_flux_view_window import  ReactorFluxViewwindow
 from edit_property_window import EditPropertyWindow
+from view_property_window import ViewPropertyWindow
 
 from query_data_window import QueryDataWindow  # Adjust this line according to your project structure
 from thermal_electrical_property_windows import EditThermalElectricalPropertyWindow
@@ -229,6 +230,7 @@ class CoreLayoutWindow(QMainWindow):
         self.query_window.show()
 
     def edit_database(self):
+<<<<<<< HEAD
         if not self.selected_channels:
             QMessageBox.warning(self, "Warning", "No channels selected for editing.")
             return
@@ -388,6 +390,23 @@ class CoreLayoutWindow(QMainWindow):
             )
             self.viewPropertyWindow.show()
 
+=======
+        selected_channels_str = ','.join(self.selected_channels)
+        selected_channels_str=selected_channels_str
+        selected_reactor_type=self.reactor_type
+        selected_reactor_name=self.reactor_name
+        QMessageBox.information(self, "Edit Database", f"User {self.username} Editing database for channels: {selected_channels_str.split(",")} of Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
+        self.editPropertyWindow=EditPropertyWindow(self.username, selected_reactor_type, selected_reactor_name, selected_channels_str.split(","), self.db_name)
+        self.editPropertyWindow.show()
+
+    def view_database(self):
+        selected_channels_str = ','.join(self.selected_channels)
+        selected_reactor_type=self.reactor_type
+        selected_reactor_name=self.reactor_name
+        QMessageBox.information(self, "View Database", f"User {self.username} Viewing database for channels: {selected_channels_str} Reactor Type: {selected_reactor_type} and Reactor Name: {selected_reactor_name}")
+        self.viewPropertyWindow=ViewPropertyWindow(self.username,self.reactor_type,self.reactor_name, selected_channels_str.split(","), self.db_name)
+        self.viewPropertyWindow.show()
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
 
     def clear_selection(self):
         for checkbox in self.checkboxes.values():

@@ -2,8 +2,13 @@ from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QSizePolicy, QGridLayout
 )
 from PyQt5.QtCore import Qt
+<<<<<<< HEAD
 from PyQt5.QtGui import QFont
 from footer_util import add_company_footer
+=======
+
+from fetch_data_window import FetchWindow
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
 from load_220_iphwr import load_220_iphwr
 from load_540_iphwr import load_540_iphwr
 from load_700_iphwr import load_700_iphwr
@@ -75,7 +80,7 @@ class IPHWRDatabase(QWidget):
 
         # Buttons for Reactor Categories
         reactor_buttons = [
-            "220 IPHWR", "540 IPHWR", "700 IPHWR", "Back", "Logout", "Help"
+            "220 IPHWR", "540 IPHWR", "700 IPHWR", "Fetch", "Logout", "Help"
         ]
         for button_name in reactor_buttons:
             button = QPushButton(button_name)
@@ -171,6 +176,9 @@ class IPHWRDatabase(QWidget):
                 self.is_220_loaded = False
                 self.is_540_loaded = False
                 self.is_700_loaded = True  # Mark as loaded
+        elif sender.text()=="Fetch":
+            self.fetch_window = FetchWindow()
+            self.fetch_window.show()
         else:
             self.load_work_in_progress(sender.text())
             self.is_220_loaded = False

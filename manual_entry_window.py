@@ -1,8 +1,16 @@
 import sys
 import sqlite3
+<<<<<<< HEAD
 from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, 
                              QMessageBox, QScrollArea, QWidget)
 from datetime import datetime
+=======
+from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLabel, 
+                             QLineEdit, QPushButton, QScrollArea, QWidget, 
+                             QMessageBox)
+import datetime  # Import the datetime module
+
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
 
 class ManualEntryWindow(QDialog):
 
@@ -29,6 +37,13 @@ class ManualEntryWindow(QDialog):
         # Create layout for scrollable widget
         self.scroll_layout = QVBoxLayout(self.scroll_widget)
 
+<<<<<<< HEAD
+=======
+        # Check and add missing columns in the database
+        self.update_database_schema()
+        # Get the current date in the format YYYY-MM-DD
+        current_date = datetime.datetime.now().strftime("%d-%m-%Y")
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
         # Create entry fields with prefilled values
         self.entries = {}
         fields = {
@@ -36,8 +51,13 @@ class ManualEntryWindow(QDialog):
             "HOY": "",
             "Length": "",
             "Entry_by": self.username,
+<<<<<<< HEAD
             "Entry_Date": datetime.now().strftime("%d-%m-%y"),  # Set default to current date
             "Remark": "",
+=======
+            "Entry_Date": current_date,
+            "Remark": "Test entry",
+>>>>>>> 98c0f3ee07d7a92d19059f36a8a84909fa2fd36a
             "Reactor_Type": reactor_type,
             "Reactor_Name": reactor_name,
         }
